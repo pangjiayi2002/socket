@@ -1,14 +1,28 @@
 package socket;
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 
 public class MultiSocketServer {
     static int num = 1;// 客户端计数
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         ServerSocket serverSocket = null;
         Socket client = null;
+        FileInputStream fis=null;
+        ObjectInputStream in;
+        ArrayList<Card> cardList=null;
         while (true) {
+            try {
+                fis = new FileInputStream(".\\card.dat");
+            }catch (FileNotFoundException e){
+                System.out.println("card文件还没创建，没有card数据表");
+            }
+            if(fis!=null){
+                in=new ObjectInputStream(fis);
+                cardList=(ArrayList<Card>) in.readObject();//读文件，返回列表
+                fis.close();
+            }
             try {
                 serverSocket = new ServerSocket(4444);// 绑定端口4444监听客户请求
             } catch (Exception e) {
