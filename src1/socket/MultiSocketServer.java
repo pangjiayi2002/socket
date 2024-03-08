@@ -13,8 +13,9 @@ public class MultiSocketServer {
         ObjectInputStream in;
         ArrayList<Card> cardList=null;
         while (true) {
+
             try {
-                fis = new FileInputStream(".\\card.dat");
+                fis = new FileInputStream(".\\card.dat");//打开文件
             }catch (FileNotFoundException e){
                 System.out.println("card文件还没创建，没有card数据表");
             }
@@ -23,8 +24,9 @@ public class MultiSocketServer {
                 cardList=(ArrayList<Card>) in.readObject();//读文件，返回列表
                 fis.close();
             }
+
             try {
-                serverSocket = new ServerSocket(4444);// 绑定端口4444监听客户请求
+                serverSocket = new ServerSocket(8888);// 绑定端口4444监听客户请求
             } catch (Exception e) {
                 System.out.println("Error:" + e);// 屏幕打印出错信息
                 System.exit(-1);
