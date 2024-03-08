@@ -1,13 +1,17 @@
 package socket;
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 
 public class Client {
     public static void main(String[] args) {
         Socket server = null;
+        FileInputStream fis=null;
+        ObjectInputStream in;
+        ArrayList<Card> cardList=null;
         try {
             String inputString;
-            server = new Socket("127.0.0.1", 4444);// 向本机4444端口发出客户请求
+            server = new Socket("192.168.1.111", 8888);// 向本机4444端口发出客户请求
             System.out.println("请输入信息:");
             BufferedReader sin = new BufferedReader(new InputStreamReader(
                     System.in));
@@ -17,6 +21,18 @@ public class Client {
             BufferedReader is = new BufferedReader(new InputStreamReader(
                     server.getInputStream()));
             // 由Socket对象得到输入流，并构造BufferedReader对象
+            try {
+                fis = new FileInputStream(".\\card.dat");
+            }catch (FileNotFoundException e){
+                System.out.println("card文件还没创建，没有card数据表");
+            }
+            if(fis!=null){
+                in=new ObjectInputStream(fis);
+                cardList=(ArrayList<Card>) in.readObject();
+                fis.close();
+            }
+
+
             inputString = sin.readLine();// 从标准输入读入一字符串（client端键盘输入的）
             while (inputString != null && !inputString.trim().equals("quit")) {// 如果该字符串为"quit",则停止循环
                 os.println(inputString);// 向Server端输出该字符串
@@ -35,6 +51,8 @@ public class Client {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
 }// 客户端程序结束
