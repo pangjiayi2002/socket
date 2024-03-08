@@ -15,7 +15,7 @@ public class MultiSocketServer {
         while (true) {
 
             try {
-                fis = new FileInputStream(".\\card.dat");//打开文件
+                fis = new FileInputStream(".\\cardd.dat");//打开文件
             }catch (FileNotFoundException e){
                 System.out.println("card文件还没创建，没有card数据表");
             }
