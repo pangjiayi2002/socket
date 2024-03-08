@@ -6,12 +6,12 @@ import java.util.ArrayList;
 public class MultiSocketServer {
     static int num = 1;// 客户端计数
 
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main(String[] args) throws Exception {
         ServerSocket serverSocket = null;
         Socket client = null;
         FileInputStream fis=null;
         ObjectInputStream in;
-        ArrayList<Card> cardList=null;
+        ArrayList<Card> cardList=new ArrayList<>();
         while (true) {
 
             try {
@@ -23,6 +23,9 @@ public class MultiSocketServer {
                 in=new ObjectInputStream(fis);
                 cardList=(ArrayList<Card>) in.readObject();//读文件，返回列表
                 fis.close();
+            }
+            for(Card item:cardList){
+                System.out.println(item.cardId+"金额："+item.money);
             }
 
             try {

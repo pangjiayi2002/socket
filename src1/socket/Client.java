@@ -6,6 +6,9 @@ import java.util.ArrayList;
 public class Client {
     public static void main(String[] args) {
         Socket server = null;
+        CardUse cu=new CardUse();
+        String cardID="";
+        int money=0;
         try {
             String inputString;
             server = new Socket("192.168.1.111", 8888);// 向本机4444端口发出客户请求
