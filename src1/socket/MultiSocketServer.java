@@ -7,7 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class MultiSocketServer {
-    static int num = 1;// 客户端计数
+    static int num = 0;// 客户端计数
 
     public static void main(String[] args) throws Exception {
         ServerSocket serverSocket = null;
@@ -15,6 +15,7 @@ public class MultiSocketServer {
         FileInputStream fis=null;
         ObjectInputStream in;
         ArrayList<Card> cardList=new ArrayList<>();
+        Executor cachedThread1 = Executors.newFixedThreadPool(1);
         while (true) {
             try {
                 serverSocket = new ServerSocket(8888);// 绑定端口4444监听客户请求
@@ -23,24 +24,22 @@ public class MultiSocketServer {
                 System.exit(-1);
             }
             try {
-                client = serverSocket.accept(); // 使用accept()阻塞等待客户请求，请求到来时
+                if(num<1)
+                {
+                    client = serverSocket.accept(); // 使用accept()阻塞等待客户请求，请求到来时
+                    ServerThread st = new ServerThread(client);
+                    cachedThread1.execute(st);
+                    num++;
+                }else {
+                    //
+
+                }
                 // 产生一个Socket对象
             } catch (Exception e) {
                 System.out.println("接受请求失败!");
                 System.exit(-1);
             }
-            System.out.println("Client[" + MultiSocketServer.num
-                    + "] 登录...............");
 
-            Executor cachedThread1 = Executors.newFixedThreadPool(1);
-            num++;// 增加客户计数
-            if(num<1) {
-                ServerThread st = new ServerThread(client);
-                cachedThread1.execute(st);
-            }
-            //ScheduledExecutorService scheduledThreadPool= Executors.newScheduledThreadPool(1);
-
-            //scheduledThreadPool.execute(st);
 
 
             try {
