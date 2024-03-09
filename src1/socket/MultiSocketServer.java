@@ -75,7 +75,67 @@ class ServerThread implements Runnable {
 
     public void run() {// 线程主体
         try {
-            String str=result();
+
+
+            //String str=result();
+
+            ObjectInputStream in;
+            FileInputStream fis=null;
+            InputStream iss=client.getInputStream();
+            ObjectInputStream oiss=new ObjectInputStream(iss);
+            CardUse cu= (CardUse) oiss.readObject();
+            String cardID=cu.cardId;
+            int type=cu.type;
+            int money=cu.money;
+            String str="";
+            ArrayList<Card> cardList=new ArrayList<>();
+            try {
+                fis = new FileInputStream(".\\card.txt");//打开文件
+            }catch (FileNotFoundException e){
+                System.out.println("card文件还没创建，没有card数据表");
+            }
+            if(fis!=null){
+                in=new ObjectInputStream(fis);
+                cardList=(ArrayList<Card>) in.readObject();//读文件，返回列表
+                fis.close();
+            }
+            for(Card card:cardList)
+            {
+                if(card.cardId.equals(cu.cardId))
+                {
+                    if(type==1)
+                    {
+                        card.money+=cu.money;
+                        str="充值成功";
+                        break;
+                    }else {
+                        if(card.money-cu.money<0)
+                        {
+                            str="余额不足，消费失败";
+                            break;
+                        }
+                        if(card.money-cu.money>=0)
+                        {
+                            card.money-=cu.money;
+                            str="消费成功，余额为"+card.money;
+                            break;
+                        }
+                    }
+                }
+            }
+            if(str.equals(""))
+            {
+                str="卡号不存在，为您创建卡号"+cu.cardId;
+                Card ca=new Card(cu.cardId,0);
+                cardList.add(ca);
+            }
+
+            FileOutputStream fos=new FileOutputStream(".\\card.txt");
+            ObjectOutputStream out=new ObjectOutputStream(fos);
+            out.writeObject(cardList);
+            out.close();
+
+            System.out.println(str);
 
             // 实现数据传输
             BufferedReader is = new BufferedReader(new InputStreamReader(
@@ -86,18 +146,19 @@ class ServerThread implements Runnable {
             BufferedReader sin = new BufferedReader(new InputStreamReader(
                     System.in));
             // 由系统标准输入设备构造BufferedReader对象
-            System.out.println("Client:" + is.readLine()); // 在标准输出上打印从客户端读入的字符串
-            String inputString = sin.readLine();// 从标准输入读入一字符串
-            while (str != null && !inputString.trim().equals("quit")) {// 如果输入的字符串为"quit"
+            //System.out.println("Client:" + is.readLine()); // 在标准输出上打印从客户端读入的字符串
+            //String inputString = sin.readLine();// 从标准输入读入一字符串
+            while (!str.equals("1")) {// 如果输入的字符串为"quit"
                 // 则退出循环
+                System.out.println("进入循环开始--------------");
                 os.println(str);// 向客户端输出该字符串
                 os.flush();// 刷新输出流，使得client马上收到该字符串
                 System.out.println("Server发送的消息为:" + str);
-                System.out.println("Client发送的消息为:" + is.readLine()); // 在标准输出上打印从客户端读入的字符串
-                inputString = sin.readLine();// 从系统标准输入读入一字符串
-
+                //System.out.println("Client发送的消息为:" + is.readLine()); // 在标准输出上打印从客户端读入的字符串
+                //inputString = sin.readLine();// 从系统标准输入读入一字符串
+                System.out.println("进入循环末尾");
                 str=result();
-
+                System.out.println("进入循环后的str是："+str);
 
             }// 继续循环
             os.close();// 关闭Socket输出流
@@ -145,6 +206,7 @@ class ServerThread implements Runnable {
                 {
                     card.money+=cu.money;
                     str="充值成功";
+                    System.out.println("充值成功时，卡号是："+card.cardId+"卡里的现有金额为："+card.money);
                     break;
                 }else {
                     if(card.money-cu.money<0)
@@ -167,6 +229,7 @@ class ServerThread implements Runnable {
             Card ca=new Card(cu.cardId,0);
             cardList.add(ca);
         }
+
 
         FileOutputStream fos=new FileOutputStream(".\\card.txt");
         ObjectOutputStream out=new ObjectOutputStream(fos);
