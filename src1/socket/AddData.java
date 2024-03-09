@@ -7,7 +7,7 @@ import java.util.Scanner;
 
 public class AddData{
     public static void main(String args[])throws Exception{
-        FileOutputStream fos=new FileOutputStream(".\\cardd.dat");
+        FileOutputStream fos=new FileOutputStream(".\\card.txt");
         ObjectOutputStream out=new ObjectOutputStream(fos);
         int n=1;
         String CardId="";
