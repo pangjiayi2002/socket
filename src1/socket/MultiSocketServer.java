@@ -16,21 +16,6 @@ public class MultiSocketServer {
         ObjectInputStream in;
         ArrayList<Card> cardList=new ArrayList<>();
         while (true) {
-
-            try {
-                fis = new FileInputStream(".\\cardd.dat");//打开文件
-            }catch (FileNotFoundException e){
-                System.out.println("card文件还没创建，没有card数据表");
-            }
-            if(fis!=null){
-                in=new ObjectInputStream(fis);
-                cardList=(ArrayList<Card>) in.readObject();//读文件，返回列表
-                fis.close();
-            }
-            for(Card item:cardList){
-                System.out.println(item.cardId+"金额："+item.money);
-            }
-
             try {
                 serverSocket = new ServerSocket(8888);// 绑定端口4444监听客户请求
             } catch (Exception e) {
@@ -47,21 +32,23 @@ public class MultiSocketServer {
             System.out.println("Client[" + MultiSocketServer.num
                     + "] 登录...............");
 
+            Executor cachedThread1 = Executors.newFixedThreadPool(1);
+            num++;// 增加客户计数
+            if(num<1) {
+                ServerThread st = new ServerThread(client);
+                cachedThread1.execute(st);
+            }
+            //ScheduledExecutorService scheduledThreadPool= Executors.newScheduledThreadPool(1);
 
-            ScheduledExecutorService scheduledThreadPool= Executors.newScheduledThreadPool(1);
-            ServerThread st = new ServerThread(client);
-            scheduledThreadPool.execute(st);
+            //scheduledThreadPool.execute(st);
 
 
-//            Thread t = new Thread(st);
-//            t.start();
-            // 监听到客户请求，据客户计数创建服务线程并启动
             try {
                 serverSocket.close();
             } catch (IOException e) {
                 System.out.println("关闭失败!");
             }
-            num++;// 增加客户计数
+
         }
     }
 }
@@ -75,90 +62,86 @@ class ServerThread implements Runnable {
 
     public void run() {// 线程主体
         try {
-
-
-            //String str=result();
-
-            ObjectInputStream in;
-            FileInputStream fis=null;
-            InputStream iss=client.getInputStream();
-            ObjectInputStream oiss=new ObjectInputStream(iss);
-            CardUse cu= (CardUse) oiss.readObject();
-            String cardID=cu.cardId;
-            int type=cu.type;
-            int money=cu.money;
-            String str="";
-            ArrayList<Card> cardList=new ArrayList<>();
-            try {
-                fis = new FileInputStream(".\\card.txt");//打开文件
-            }catch (FileNotFoundException e){
-                System.out.println("card文件还没创建，没有card数据表");
-            }
-            if(fis!=null){
-                in=new ObjectInputStream(fis);
-                cardList=(ArrayList<Card>) in.readObject();//读文件，返回列表
-                fis.close();
-            }
-            for(Card card:cardList)
-            {
-                if(card.cardId.equals(cu.cardId))
-                {
-                    if(type==1)
-                    {
-                        card.money+=cu.money;
-                        str="充值成功";
-                        break;
-                    }else {
-                        if(card.money-cu.money<0)
-                        {
-                            str="余额不足，消费失败";
-                            break;
-                        }
-                        if(card.money-cu.money>=0)
-                        {
-                            card.money-=cu.money;
-                            str="消费成功，余额为"+card.money;
-                            break;
-                        }
-                    }
-                }
-            }
-            if(str.equals(""))
-            {
-                str="卡号不存在，为您创建卡号"+cu.cardId;
-                Card ca=new Card(cu.cardId,0);
-                cardList.add(ca);
-            }
-
-            FileOutputStream fos=new FileOutputStream(".\\card.txt");
-            ObjectOutputStream out=new ObjectOutputStream(fos);
-            out.writeObject(cardList);
-            out.close();
-
-            System.out.println(str);
-
-            // 实现数据传输
+            String str="123";
+//            // 实现数据传输
             BufferedReader is = new BufferedReader(new InputStreamReader(
                     client.getInputStream()));
-            // 由Socket对象得到输入流，并构造相应的BufferedReader对象
+//            // 由Socket对象得到输入流，并构造相应的BufferedReader对象
             PrintWriter os = new PrintWriter(client.getOutputStream());
-            // 由Socket对象得到输出流，并构造PrintWriter对象
-            BufferedReader sin = new BufferedReader(new InputStreamReader(
-                    System.in));
+            InputStream iss=client.getInputStream();
+            ObjectInputStream oiss=new ObjectInputStream(iss);
+//            // 由Socket对象得到输出流，并构造PrintWriter对象
+//            BufferedReader sin = new BufferedReader(new InputStreamReader(
+//                    System.in));
             // 由系统标准输入设备构造BufferedReader对象
             //System.out.println("Client:" + is.readLine()); // 在标准输出上打印从客户端读入的字符串
             //String inputString = sin.readLine();// 从标准输入读入一字符串
             while (!str.equals("1")) {// 如果输入的字符串为"quit"
+                ObjectInputStream in;
+                FileInputStream fis=null;
+                CardUse cu= (CardUse) oiss.readObject();
+                String cardID=cu.cardId;
+                int type=cu.type;
+                int money=cu.money;
+                ArrayList<Card> cardList=new ArrayList<>();
+                try {
+                    fis = new FileInputStream(".\\card.txt");//打开文件
+                }catch (FileNotFoundException e){
+                    System.out.println("card文件还没创建，没有card数据表");
+                }
+                if(fis!=null){
+                    in=new ObjectInputStream(fis);
+                    cardList=(ArrayList<Card>) in.readObject();//读文件，返回列表
+                    fis.close();
+                }
+                for(Card card:cardList)
+                {
+                    if(card.cardId.equals(cu.cardId))
+                    {
+                        if(type==1)
+                        {
+                            card.money+=cu.money;
+                            str="充值成功,您的余额为"+card.money;
+                            break;
+                        }else {
+                            if(card.money-cu.money<0)
+                            {
+                                str="余额不足，消费失败,您的余额仅为"+card.money;
+                                break;
+                            }
+                            if(card.money-cu.money>=0)
+                            {
+                                card.money-=cu.money;
+                                str="消费成功，余额为"+card.money;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if(str.equals(""))
+                {
+                    str="卡号不存在，为您创建卡号"+cu.cardId;
+                    Card ca=new Card(cu.cardId,0);
+                    cardList.add(ca);
+                }
+
+
+                FileOutputStream fos=new FileOutputStream(".\\card.txt");
+                ObjectOutputStream out=new ObjectOutputStream(fos);
+                out.writeObject(cardList);
+                out.close();
+
+
                 // 则退出循环
-                System.out.println("进入循环开始--------------");
+                //System.out.println("进入循环开始--------------");
                 os.println(str);// 向客户端输出该字符串
                 os.flush();// 刷新输出流，使得client马上收到该字符串
                 System.out.println("Server发送的消息为:" + str);
                 //System.out.println("Client发送的消息为:" + is.readLine()); // 在标准输出上打印从客户端读入的字符串
                 //inputString = sin.readLine();// 从系统标准输入读入一字符串
-                System.out.println("进入循环末尾");
-                str=result();
-                System.out.println("进入循环后的str是："+str);
+                //System.out.println("进入循环末尾");
+                //str=result();
+                //System.out.println("进入循环后的str是："+str);
 
             }// 继续循环
             os.close();// 关闭Socket输出流
@@ -176,67 +159,6 @@ class ServerThread implements Runnable {
             throw new RuntimeException(e);
         }
     }
-    public String result() throws Exception
-    {
-        ObjectInputStream in;
-        FileInputStream fis=null;
-        InputStream iss=client.getInputStream();
-        ObjectInputStream oiss=new ObjectInputStream(iss);
-        CardUse cu= (CardUse) oiss.readObject();
-        String cardID=cu.cardId;
-        int type=cu.type;
-        int money=cu.money;
-        String str="";
-        ArrayList<Card> cardList=new ArrayList<>();
-        try {
-            fis = new FileInputStream(".\\card.txt");//打开文件
-        }catch (FileNotFoundException e){
-            System.out.println("card文件还没创建，没有card数据表");
-        }
-        if(fis!=null){
-            in=new ObjectInputStream(fis);
-            cardList=(ArrayList<Card>) in.readObject();//读文件，返回列表
-            fis.close();
-        }
-        for(Card card:cardList)
-        {
-            if(card.cardId.equals(cu.cardId))
-            {
-                if(type==1)
-                {
-                    card.money+=cu.money;
-                    str="充值成功";
-                    System.out.println("充值成功时，卡号是："+card.cardId+"卡里的现有金额为："+card.money);
-                    break;
-                }else {
-                    if(card.money-cu.money<0)
-                    {
-                        str="余额不足，消费失败";
-                        break;
-                    }
-                    if(card.money-cu.money>=0)
-                    {
-                        card.money-=cu.money;
-                        str="消费成功，余额为"+card.money;
-                        break;
-                    }
-                }
-            }
-        }
-        if(str.equals(""))
-        {
-            str="卡号不存在，为您创建卡号"+cu.cardId;
-            Card ca=new Card(cu.cardId,0);
-            cardList.add(ca);
-        }
 
-
-        FileOutputStream fos=new FileOutputStream(".\\card.txt");
-        ObjectOutputStream out=new ObjectOutputStream(fos);
-        out.writeObject(cardList);
-        out.close();
-
-        return str;
-    }
 }
 

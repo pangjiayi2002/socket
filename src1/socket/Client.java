@@ -49,7 +49,7 @@ public class Client {
 //                n = sin.readLine();
 //
 //                if(n.equals("1"))
-//                {
+//                {1
 //                    //sc.close();
 //                    break;
 //                }
